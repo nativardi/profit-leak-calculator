@@ -305,12 +305,12 @@
 
         <a class="cta" id="wa" target="_blank" rel="noopener">שלחו לי את התוצאה בוואטסאפ</a>
         <p class="cta-sub">אחזור אליכם עם הדבר הראשון שהייתי בודק אצלכם. בלי שום התחייבות.</p>
-        <p class="cta-sub">רוצים עוד כלים כאלה? <a href="https://chat.whatsapp.com/DNGcY3MOi7o6lhivN0Q94c?mode=gi_t" target="_blank" rel="noopener">כנסו לקבוצת הוואטסאפ</a></p>
+        <p class="cta-sub">רוצים עוד כלים כאלה? <a id="community" href="https://chat.whatsapp.com/DNGcY3MOi7o6lhivN0Q94c?mode=gi_t" target="_blank" rel="noopener">כנסו לקבוצת הוואטסאפ</a></p>
       </div>
     </aside>
   </div>
 
-  <footer>נבנה על ידי נתי ורדי. מה שבחרתם נשאר אצלכם ולא נשמר בשום מקום. התוצאה היא הערכה.</footer>
+  <footer>נבנה על ידי נתי ורדי. מה שבחרתם נשאר אצלכם ולא נשמר בשום מקום. אנחנו סופרים רק כמה נכנסו ולחצו, בלי שום פרט מזהה. התוצאה היא הערכה.</footer>
 </div>
 
 <div class="live" id="live">
@@ -324,6 +324,13 @@
   // Nati's WhatsApp number in international format, digits only (e.g. 9725XXXXXXXX).
   // Empty = the button opens WhatsApp and the user picks who to send to.
   const WA_NUMBER = "";
+
+  // Anonymous counters (no cookies, no personal data): opens, answered, wa, community.
+  // Read them with ./stats.sh. Skipped on localhost so testing doesn't skew the numbers.
+  const COUNTER = "https://abacus.jasoncameron.dev/hit/nativardi-plc/";
+  const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const count = key => { if (!isLocal) fetch(COUNTER + key, { keepalive: true }).catch(() => {}); };
+  const countOnce = (() => { const done = new Set(); return key => { if (!done.has(key)) { done.add(key); count(key); } }; })();
 
   // Each answer maps to the number the calculation uses. `on` marks the preselected answer.
   const QUESTIONS = {
@@ -349,7 +356,7 @@
       span.textContent = label;
       lab.append(input, span);
       box.append(lab);
-      input.addEventListener("change", calc);
+      input.addEventListener("change", () => { countOnce("answered"); calc(); });
     });
   });
 
@@ -394,6 +401,9 @@
   }
 
   calc();
+  count("opens");
+  el("wa").addEventListener("click", () => countOnce("wa"));
+  el("community").addEventListener("click", () => countOnce("community"));
 
   // the drip: money lost since the page opened, at the current monthly rate
   const opened = Date.now();
