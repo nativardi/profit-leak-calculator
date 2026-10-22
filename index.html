@@ -328,7 +328,10 @@
   // Anonymous counters (no cookies, no personal data): opens, answered, wa, community.
   // Read them with ./stats.sh. Skipped on localhost so testing doesn't skew the numbers.
   const COUNTER = "https://abacus.jasoncameron.dev/hit/nativardi-plc/";
-  const isLocal = ["localhost", "127.0.0.1"].includes(location.hostname);
+  // #demo opens with fixed example answers for the Loom recording, and is never counted.
+  const DEMO = location.hash === "#demo";
+  const DEMO_ANSWERS = { stock: 750000, stuck: .25, quotes: 50, deal: 6000, followup: .45 };
+  const isLocal = DEMO || ["localhost", "127.0.0.1"].includes(location.hostname);
   const count = key => { if (!isLocal) fetch(COUNTER + key, { keepalive: true }).catch(() => {}); };
   const countOnce = (() => { const done = new Set(); return key => { if (!done.has(key)) { done.add(key); count(key); } }; })();
 
@@ -351,7 +354,8 @@
     const name = fs.dataset.name, box = fs.querySelector(".chips");
     QUESTIONS[name].forEach(([label, value, on], i) => {
       const lab = document.createElement("label");
-      const input = Object.assign(document.createElement("input"), { type: "radio", name, value, checked: on === "on" });
+      const checked = DEMO ? value === DEMO_ANSWERS[name] : on === "on";
+      const input = Object.assign(document.createElement("input"), { type: "radio", name, value, checked });
       const span = document.createElement("span");
       span.textContent = label;
       lab.append(input, span);
