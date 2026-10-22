@@ -6,7 +6,7 @@
 <title>מחשבון דליפות רווח</title>
 <meta name="description" content="מחשבון AI חינמי שמראה כמה כסף נוזל מהעסק כל חודש: סחורה שלא זזה והצעות מחיר בלי פולואפ.">
 <meta property="og:title" content="מחשבון AI לגילוי דליפות הרווח">
-<meta property="og:description" content="2 דקות, כמה מספרים, ואתם רואים כמה כסף נוזל לכם כל חודש.">
+<meta property="og:description" content="5 שאלות קצרות, לפי תחושת בטן, ואתם רואים כמה כסף נוזל לכם כל חודש.">
 <meta name="theme-color" content="#14213D">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,9 +18,9 @@
     --ink: #14213D;
     --ink-soft: #4A5670;
     --line: #CBD2DA;
+    --chip: #F1F4F7;
     --tape: #F2B705;
     --loss: #D7263D;
-    --gain: #1F8A5B;
     --display: "Karantina", "IBM Plex Sans Hebrew", sans-serif;
     --body: "IBM Plex Sans Hebrew", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -28,12 +28,12 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --steel: #0F1626; --card: #18213A; --ink: #EEF1F6; --ink-soft: #A7B1C4;
-      --line: #2C3753; --loss: #FF5A6E; --gain: #3CC48A;
+      --line: #2C3753; --chip: #202B47; --loss: #FF5A6E;
     }
   }
   :root[data-theme="dark"] {
     --steel: #0F1626; --card: #18213A; --ink: #EEF1F6; --ink-soft: #A7B1C4;
-    --line: #2C3753; --loss: #FF5A6E; --gain: #3CC48A;
+    --line: #2C3753; --chip: #202B47; --loss: #FF5A6E;
   }
 
   * { box-sizing: border-box; }
@@ -60,53 +60,59 @@
     font-family: var(--display); font-weight: 700; font-size: clamp(52px, 14vw, 84px);
     line-height: .95; margin: 14px 0 10px; letter-spacing: -.01em;
   }
-  .lede { color: var(--ink-soft); margin: 0 0 8px; max-width: 34ch; }
+  .lede { color: var(--ink-soft); margin: 0 0 8px; max-width: 40ch; }
 
   .leak {
     background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 20px 18px 8px; margin: 22px 0 0;
+    padding: 20px 18px 6px; margin: 22px 0 0;
   }
   .leak-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .leak h2 { font-size: 21px; margin: 0; line-height: 1.25; }
   .leak-sum { font-family: var(--mono); font-weight: 600; color: var(--loss); white-space: nowrap; font-size: 16px; }
+  .unit { font-family: var(--body); font-weight: 400; font-size: 14px; color: var(--ink-soft); }
   .leak-why { color: var(--ink-soft); font-size: 15px; margin: 6px 0 4px; }
 
-  .field { padding: 16px 0 14px; border-top: 1px dashed var(--line); }
-  .field:first-of-type { border-top: 0; }
-  .field-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  .field label { font-weight: 500; font-size: 16px; }
-  .num {
-    display: flex; align-items: center; gap: 4px; direction: ltr;
-    border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; background: var(--steel);
+  /* a question with tap-to-pick answers */
+  fieldset.q { border: 0; margin: 0; padding: 16px 0 16px; border-top: 1px dashed var(--line); min-width: 0; }
+  /* floated so the legend sits below the dashed divider instead of cutting through it */
+  fieldset.q legend { float: right; width: 100%; font-weight: 500; font-size: 17px; padding: 0; margin-bottom: 4px; line-height: 1.4; }
+  fieldset.q .hint, fieldset.q .chips { clear: both; }
+  .hint { color: var(--ink-soft); font-size: 14px; margin: 0 0 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chips label { position: relative; }
+  .chips input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .chips span {
+    display: inline-block; padding: 9px 14px; border-radius: 999px; font-size: 15px; font-weight: 500;
+    background: var(--chip); border: 1.5px solid var(--line); color: var(--ink);
+    transition: background .15s, border-color .15s, color .15s; user-select: none; cursor: pointer;
   }
-  .num input {
-    width: 92px; border: 0; background: transparent; color: var(--ink);
-    font: 600 16px var(--mono); text-align: left;
-  }
-  .num input:focus { outline: none; }
-  .num:focus-within { outline: 2px solid var(--tape); outline-offset: 1px; }
-  .num span { color: var(--ink-soft); font-family: var(--mono); font-size: 14px; }
-  .hint { color: var(--ink-soft); font-size: 13px; margin-top: 4px; }
+  .chips label:hover span { border-color: var(--ink-soft); }
+  .chips input:checked + span { background: #14213D; border-color: #14213D; color: var(--tape); }
+  .chips input:focus-visible + span { outline: 2px solid var(--tape); outline-offset: 2px; }
 
+  details.assume { margin: 18px 0 0; }
+  details.assume summary { cursor: pointer; color: var(--ink-soft); font-size: 15px; padding: 6px 0; }
+  details.assume summary:focus-visible { outline: 2px solid var(--tape); border-radius: 4px; }
+  details.assume .leak { margin-top: 8px; padding-bottom: 12px; }
+  .field { padding: 14px 0 6px; border-top: 1px dashed var(--line); }
+  .field:first-child { border-top: 0; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .field label { font-weight: 500; font-size: 15px; }
+  .field output { font-family: var(--mono); font-weight: 600; direction: ltr; }
   input[type=range] {
-    -webkit-appearance: none; appearance: none; width: 100%; height: 34px; margin: 8px 0 0;
+    -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 6px 0 0;
     background: transparent; direction: rtl;
   }
   input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--line); }
   input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--line); }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 50%;
+    -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%;
     background: var(--tape); border: 3px solid #14213D; cursor: grab;
   }
   input[type=range]::-moz-range-thumb {
-    width: 22px; height: 22px; border-radius: 50%; background: var(--tape); border: 3px solid #14213D; cursor: grab;
+    width: 18px; height: 18px; border-radius: 50%; background: var(--tape); border: 3px solid #14213D; cursor: grab;
   }
   input[type=range]:focus-visible { outline: 2px solid var(--tape); outline-offset: 4px; border-radius: 4px; }
-
-  details.assume { margin: 18px 0 0; }
-  details.assume summary { cursor: pointer; color: var(--ink-soft); font-size: 15px; padding: 6px 0; }
-  details.assume summary:focus-visible { outline: 2px solid var(--tape); border-radius: 4px; }
-  details.assume .leak { margin-top: 8px; }
 
   /* result */
   .result { margin: 30px 0 0; background: #14213D; color: #EEF1F6; border-radius: 16px; overflow: hidden; }
@@ -114,13 +120,12 @@
   .result-label { font-size: 15px; color: #A7B1C4; margin: 0; }
   .big {
     font-family: var(--display); font-weight: 700; color: var(--tape);
-    font-size: clamp(76px, 22vw, 128px); line-height: .9; margin: 6px 0 2px; direction: ltr; text-align: right;
+    font-size: clamp(76px, 22vw, 120px); line-height: .9; margin: 6px 0 2px; direction: ltr; text-align: right;
   }
-  .per { font-size: 16px; color: #EEF1F6; margin: 0; }
-  .year { font-family: var(--mono); color: #A7B1C4; font-size: 15px; margin: 6px 0 0; }
-
   .cur { font-family: var(--body); font-weight: 500; font-size: .45em; margin-right: .08em; vertical-align: .55em; }
-  .unit { font-family: var(--body); font-weight: 400; font-size: 14px; color: var(--ink-soft); }
+  .per { font-size: 16px; margin: 0; }
+  .year { font-family: var(--mono); color: #A7B1C4; font-size: 15px; margin: 6px 0 0; }
+  .year .unit { color: inherit; }
 
   .drip {
     margin: 18px 0 0; padding: 10px 12px; border: 1px dashed #3A4766; border-radius: 10px;
@@ -160,7 +165,7 @@
 
   footer { padding: 26px 0 10px; color: var(--ink-soft); font-size: 13px; }
 
-  /* sticky running total while filling in */
+  /* sticky running total while answering (phone only) */
   .live {
     position: fixed; inset: auto 0 0 0; background: #14213D; color: #EEF1F6;
     border-top: 4px solid var(--tape); z-index: 5; transition: transform .25s ease;
@@ -171,140 +176,146 @@
   .live b { font-family: var(--display); color: var(--tape); font-size: 40px; line-height: 1; direction: ltr; }
   .live a { color: #EEF1F6; font-size: 15px; font-weight: 500; }
 
+  /* computer: questions on the right, result pinned on the left */
+  @media (min-width: 960px) {
+    body { padding-bottom: 0; }
+    .wrap { max-width: 1120px; padding: 0 32px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 36px; align-items: start; }
+    .result { position: sticky; top: 24px; margin-top: 22px; }
+    .live { display: none; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bar i, .live { transition: none; }
+    .bar i, .live, .chips span { transition: none; }
   }
 </style>
 </head>
 <body>
 <div class="tape" aria-hidden="true"></div>
 
-<main class="wrap">
+<div class="wrap">
   <header>
     <span class="eyebrow">מחשבון AI לגילוי דליפות הרווח</span>
     <h1>כמה כסף נוזל לכם כל חודש?</h1>
-    <p class="lede">שתי דליפות שכמעט כל עסק עם מלאי וסוכני שטח מכיר. מזיזים את הסליידרים לפי העסק שלכם, והמספר למטה מתעדכן.</p>
+    <p class="lede">5 שאלות קצרות, לפי תחושת בטן. לא צריך לבדוק דוחות, והתוצאה מתעדכנת תוך כדי.</p>
   </header>
 
-  <section class="leak" aria-labelledby="h-stock">
-    <div class="leak-head">
-      <h2 id="h-stock">סחורה שלא זזה</h2>
-      <span class="leak-sum" id="sum-stock"></span>
-    </div>
-    <p class="leak-why">סחורה שיושבת על המדף עולה כסף כל חודש: מקום, מימון, ביטוח, פחת. וגם הכסף שהשקעתם בה תקוע.</p>
-
-    <div class="field">
-      <div class="field-top">
-        <label for="stock">שווי הסחורה שלא נמכרה חצי שנה ומעלה</label>
-        <div class="num"><span>₪</span><input id="stock-n" inputmode="numeric" aria-label="שווי הסחורה בשקלים"></div>
-      </div>
-      <input type="range" id="stock" min="0" max="2000000" step="10000" value="250000">
-      <div class="hint">לא בטוחים? תחשבו על המוצרים שאתם רואים כבר חודשים באותו מקום.</div>
-    </div>
-  </section>
-
-  <section class="leak" aria-labelledby="h-quotes">
-    <div class="leak-head">
-      <h2 id="h-quotes">הצעות מחיר בלי פולואפ</h2>
-      <span class="leak-sum" id="sum-quotes"></span>
-    </div>
-    <p class="leak-why">הצעה שנשלחה ואף אחד לא חזר אליה היא עסקה שהלכה למתחרה.</p>
-
-    <div class="field">
-      <div class="field-top">
-        <label for="q">כמה הצעות מחיר יוצאות בחודש</label>
-        <div class="num"><input id="q-n" inputmode="numeric" aria-label="הצעות בחודש"></div>
-      </div>
-      <input type="range" id="q" min="0" max="300" step="5" value="40">
-    </div>
-
-    <div class="field">
-      <div class="field-top">
-        <label for="avg">שווי ממוצע של הצעה</label>
-        <div class="num"><span>₪</span><input id="avg-n" inputmode="numeric" aria-label="שווי ממוצע בשקלים"></div>
-      </div>
-      <input type="range" id="avg" min="500" max="100000" step="500" value="8000">
-    </div>
-
-    <div class="field">
-      <div class="field-top">
-        <label for="nofu">כמה מהן לא מקבלות פולואפ מסודר</label>
-        <div class="num"><input id="nofu-n" inputmode="numeric" aria-label="אחוז בלי פולואפ"><span>%</span></div>
-      </div>
-      <input type="range" id="nofu" min="0" max="100" step="5" value="50">
-      <div class="hint">בלי טלפון או הודעה תוך כמה ימים מהשליחה.</div>
-    </div>
-  </section>
-
-  <details class="assume">
-    <summary>ההנחות שהחישוב משתמש בהן (אפשר לשנות)</summary>
-    <section class="leak" aria-label="הנחות">
-      <div class="field">
-        <div class="field-top">
-          <label for="hold">עלות החזקת מלאי בשנה, מתוך שוויו</label>
-          <div class="num"><input id="hold-n" inputmode="numeric" aria-label="עלות החזקה באחוזים"><span>%</span></div>
+  <div class="layout">
+    <main>
+      <section class="leak" aria-labelledby="h-stock">
+        <div class="leak-head">
+          <h2 id="h-stock">סחורה שלא זזה</h2>
+          <span class="leak-sum" id="sum-stock"></span>
         </div>
-        <input type="range" id="hold" min="5" max="50" step="1" value="25">
-        <div class="hint">מקום, מימון, ביטוח, פחת וסחורה שמתיישנת.</div>
-      </div>
-      <div class="field">
-        <div class="field-top">
-          <label for="lift">כמה מההצעות בלי פולואפ היו נסגרות עם פולואפ</label>
-          <div class="num"><input id="lift-n" inputmode="numeric" aria-label="אחוז סגירה נוסף"><span>%</span></div>
+        <p class="leak-why">סחורה שיושבת במחסן עולה כסף כל חודש: מקום, מימון, ביטוח ופחת. וכל הזמן הזה, הכסף ששילמתם עליה תקוע על המדף.</p>
+
+        <fieldset class="q" data-name="stock">
+          <legend>כמה שווה בערך כל הסחורה שיש לכם עכשיו במחסן?</legend>
+          <p class="hint">לפי הדוח האחרון, או סתם הערכה מהראש. מספיק בערך.</p>
+          <div class="chips"></div>
+        </fieldset>
+
+        <fieldset class="q" data-name="stuck">
+          <legend>כשאתם עושים סיבוב במחסן, כמה מהסחורה לא זזה כבר חצי שנה?</legend>
+          <p class="hint">לא צריך לבדוק במחשב. תחשבו על המדפים שנראים אותו דבר כבר חודשים.</p>
+          <div class="chips"></div>
+        </fieldset>
+      </section>
+
+      <section class="leak" aria-labelledby="h-quotes">
+        <div class="leak-head">
+          <h2 id="h-quotes">הצעות מחיר בלי פולואפ</h2>
+          <span class="leak-sum" id="sum-quotes"></span>
         </div>
-        <input type="range" id="lift" min="0" max="50" step="1" value="20">
-      </div>
-      <div class="field">
-        <div class="field-top">
-          <label for="ai">כמה מהדליפה AI ואוטומציות יכולים להחזיר</label>
-          <div class="num"><input id="ai-n" inputmode="numeric" aria-label="אחוז החזר"><span>%</span></div>
+        <p class="leak-why">הצעה שיצאה ואף אחד לא חזר אליה היא עסקה שעברה למתחרים.</p>
+
+        <fieldset class="q" data-name="quotes">
+          <legend>כמה הצעות מחיר אתם מוציאים בחודש?</legend>
+          <div class="chips"></div>
+        </fieldset>
+
+        <fieldset class="q" data-name="deal">
+          <legend>כמה שווה עסקה ממוצעת אצלכם, בערך?</legend>
+          <div class="chips"></div>
+        </fieldset>
+
+        <fieldset class="q" data-name="followup">
+          <legend>שלחתם הצעה והלקוח לא ענה. מה קורה איתה בדרך כלל?</legend>
+          <div class="chips"></div>
+        </fieldset>
+      </section>
+
+      <details class="assume">
+        <summary>ההנחות שמאחורי החישוב (אפשר לשנות)</summary>
+        <section class="leak" aria-label="הנחות">
+          <div class="field">
+            <div class="field-top">
+              <label for="hold">עלות שנתית של החזקת מלאי, מתוך השווי שלו</label>
+              <output for="hold" id="hold-o"></output>
+            </div>
+            <input type="range" id="hold" min="5" max="50" step="1" value="25">
+            <p class="hint">מקום במחסן, מימון, ביטוח, פחת ובלאי של סחורה.</p>
+          </div>
+          <div class="field">
+            <div class="field-top">
+              <label for="lift">כמה מההצעות שנשכחו היו נסגרות אם היה פולואפ</label>
+              <output for="lift" id="lift-o"></output>
+            </div>
+            <input type="range" id="lift" min="0" max="50" step="1" value="20">
+          </div>
+          <div class="field">
+            <div class="field-top">
+              <label for="ai">כמה מהכסף שנוזל AI ואוטומציות יכולים להחזיר</label>
+              <output for="ai" id="ai-o"></output>
+            </div>
+            <input type="range" id="ai" min="10" max="100" step="5" value="70">
+            <p class="hint">התראה לפני שסחורה נתקעת + תזכורת פולואפ אוטומטית לכל הצעה.</p>
+          </div>
+        </section>
+      </details>
+    </main>
+
+    <aside class="result" id="result" aria-live="polite">
+      <div class="tape" aria-hidden="true"></div>
+      <div class="result-body">
+        <p class="result-label">הכסף שנוזל לכם מהעסק</p>
+        <div class="big" id="total"></div>
+        <p class="per">בחודש</p>
+        <p class="year" id="year"></p>
+
+        <div class="drip">
+          <span>מאז שנכנסתם לדף נזלו לכם</span>
+          <b id="drip">₪0.00</b>
         </div>
-        <input type="range" id="ai" min="10" max="100" step="5" value="70">
-        <div class="hint">התראה על סחורה שנתקעת + תזכורת פולואפ אוטומטית לכל הצעה.</div>
+
+        <div class="split">
+          <div class="bar" aria-hidden="true"><i class="s" id="bar-s"></i><i class="q" id="bar-q"></i></div>
+          <div class="legend"><span class="s" id="lg-s"></span><span class="q" id="lg-q"></span></div>
+        </div>
+
+        <div class="recover">
+          <p>עם AI ואוטומציות אפשר להחזיר הביתה בערך</p>
+          <p><strong id="recover"></strong> בחודש</p>
+        </div>
+
+        <div class="steps">
+          <h3 id="step-title"></h3>
+          <p id="step-text"></p>
+        </div>
+
+        <a class="cta" id="wa" target="_blank" rel="noopener">שלחו לי את התוצאה בוואטסאפ</a>
+        <p class="cta-sub">אחזור אליכם עם הדבר הראשון שהייתי בודק אצלכם. בלי שום התחייבות.</p>
+        <p class="cta-sub">רוצים עוד כלים כאלה? <a href="https://chat.whatsapp.com/DNGcY3MOi7o6lhivN0Q94c?mode=gi_t" target="_blank" rel="noopener">כנסו לקבוצת הוואטסאפ</a></p>
       </div>
-    </section>
-  </details>
+    </aside>
+  </div>
 
-  <section class="result" id="result" aria-live="polite">
-    <div class="tape" aria-hidden="true"></div>
-    <div class="result-body">
-      <p class="result-label">הדליפה שלכם</p>
-      <div class="big" id="total"></div>
-      <p class="per">בחודש</p>
-      <p class="year" id="year"></p>
-
-      <div class="drip">
-        <span>מאז שפתחתם את הדף נזלו לכם</span>
-        <b id="drip">₪0.00</b>
-      </div>
-
-      <div class="split">
-        <div class="bar" aria-hidden="true"><i class="s" id="bar-s"></i><i class="q" id="bar-q"></i></div>
-        <div class="legend"><span class="s" id="lg-s"></span><span class="q" id="lg-q"></span></div>
-      </div>
-
-      <div class="recover">
-        <p>עם AI ואוטומציות אפשר להחזיר הביתה בערך</p>
-        <p><strong id="recover"></strong> בחודש</p>
-      </div>
-
-      <div class="steps">
-        <h3 id="step-title"></h3>
-        <p id="step-text"></p>
-      </div>
-
-      <a class="cta" id="wa" target="_blank" rel="noopener">שלחו לי את התוצאה בוואטסאפ</a>
-      <p class="cta-sub">אחזור אליכם עם הדבר הראשון שהייתי בודק אצלכם. בלי התחייבות.</p>
-      <p class="cta-sub">רוצים עוד כלים כאלה? <a href="https://chat.whatsapp.com/DNGcY3MOi7o6lhivN0Q94c?mode=gi_t" target="_blank" rel="noopener">לקהילת הוואטסאפ</a></p>
-    </div>
-  </section>
-
-  <footer>נבנה על ידי נתי ורדי. הנתונים שתזינו נשארים אצלכם בדפדפן ולא נשמרים בשום מקום. התוצאה היא הערכה.</footer>
-</main>
+  <footer>נבנה על ידי נתי ורדי. מה שבחרתם נשאר אצלכם ולא נשמר בשום מקום. התוצאה היא הערכה.</footer>
+</div>
 
 <div class="live" id="live">
   <div class="wrap">
-    <div><small>דליפה בחודש</small><b id="live-total"></b></div>
+    <div><small>נוזל לכם בחודש</small><b id="live-total"></b></div>
     <a href="#result">לתוצאה המלאה ↓</a>
   </div>
 </div>
@@ -314,43 +325,54 @@
   // Empty = the button opens WhatsApp and the user picks who to send to.
   const WA_NUMBER = "";
 
+  // Each answer maps to the number the calculation uses. `on` marks the preselected answer.
+  const QUESTIONS = {
+    stock:    [["עד 100 אלף ₪", 60000], ["100 - 500 אלף ₪", 300000, "on"], ["חצי מיליון עד מיליון", 750000], ["1 - 3 מיליון ₪", 2000000], ["יותר מ-3 מיליון ₪", 4000000]],
+    stuck:    [["כמעט כלום", .05], ["קצת", .15, "on"], ["לא מעט", .25], ["הרבה", .4]],
+    quotes:   [["עד 10", 6], ["10 - 30", 20, "on"], ["30 - 80", 50], ["יותר מ-80", 100]],
+    deal:     [["עד 2,000 ₪", 1500], ["2,000 - 10,000 ₪", 6000, "on"], ["10,000 - 50,000 ₪", 25000], ["יותר מ-50,000 ₪", 70000]],
+    followup: [["חוזרים לכל הצעה", .1], ["חוזרים רק לחלק", .45, "on"], ["אף אחד לא חוזר", .8]],
+  };
+
+  const el = id => document.getElementById(id);
   const fmt = n => "₪" + Math.round(n).toLocaleString("he-IL");
   const big = n => '<span class="cur">₪</span>' + Math.round(n).toLocaleString("he-IL");
-  const fields = ["stock", "q", "avg", "nofu", "hold", "lift", "ai"];
-  const el = id => document.getElementById(id);
-  const val = id => Number(el(id).value);
+  const unit = t => ' <span class="unit">' + t + '</span>';
 
-  function clamp(id, n) {
-    const r = el(id);
-    return Math.min(Number(r.max), Math.max(Number(r.min), n));
-  }
-
-  function bind(id) {
-    const range = el(id), box = el(id + "-n");
-    box.value = Number(range.value).toLocaleString("he-IL");
-    range.addEventListener("input", () => { box.value = Number(range.value).toLocaleString("he-IL"); calc(); });
-    box.addEventListener("change", () => {
-      const n = Number(box.value.replace(/[^\d.]/g, ""));
-      if (Number.isFinite(n)) range.value = clamp(id, n);
-      box.value = Number(range.value).toLocaleString("he-IL");
-      calc();
+  // build the answer buttons
+  document.querySelectorAll("fieldset.q").forEach(fs => {
+    const name = fs.dataset.name, box = fs.querySelector(".chips");
+    QUESTIONS[name].forEach(([label, value, on], i) => {
+      const lab = document.createElement("label");
+      const input = Object.assign(document.createElement("input"), { type: "radio", name, value, checked: on === "on" });
+      const span = document.createElement("span");
+      span.textContent = label;
+      lab.append(input, span);
+      box.append(lab);
+      input.addEventListener("change", calc);
     });
-  }
+  });
+
+  const pick = name => Number(document.querySelector(`input[name="${name}"]:checked`).value);
+  const pct = id => Number(el(id).value) / 100;
+
+  ["hold", "lift", "ai"].forEach(id => el(id).addEventListener("input", calc));
 
   let monthly = 0;
 
   function calc() {
-    const stockLeak = val("stock") * val("hold") / 100 / 12;
-    const quoteLeak = val("q") * (val("nofu") / 100) * val("avg") * (val("lift") / 100);
-    monthly = stockLeak + quoteLeak;
-    const recover = monthly * val("ai") / 100;
+    ["hold", "lift", "ai"].forEach(id => el(id + "-o").textContent = el(id).value + "%");
 
-    el("sum-stock").innerHTML = fmt(stockLeak) + ' <span class="unit">בחודש</span>';
-    el("sum-quotes").innerHTML = fmt(quoteLeak) + ' <span class="unit">בחודש</span>';
+    const stockLeak = pick("stock") * pick("stuck") * pct("hold") / 12;
+    const quoteLeak = pick("quotes") * pick("followup") * pick("deal") * pct("lift");
+    monthly = stockLeak + quoteLeak;
+
+    el("sum-stock").innerHTML = fmt(stockLeak) + unit("בחודש");
+    el("sum-quotes").innerHTML = fmt(quoteLeak) + unit("בחודש");
     el("total").innerHTML = big(monthly);
     el("live-total").innerHTML = big(monthly);
-    el("year").innerHTML = fmt(monthly * 12) + ' <span class="unit" style="color:inherit">בשנה</span>';
-    el("recover").textContent = fmt(recover);
+    el("year").innerHTML = fmt(monthly * 12) + unit("בשנה");
+    el("recover").textContent = fmt(monthly * pct("ai"));
 
     const sPct = monthly ? stockLeak / monthly * 100 : 50;
     el("bar-s").style.width = sPct + "%";
@@ -359,19 +381,18 @@
     el("lg-q").textContent = "הצעות " + fmt(quoteLeak);
 
     const stockBigger = stockLeak >= quoteLeak;
-    el("step-title").textContent = "הדליפה הגדולה אצלכם: " + (stockBigger ? "סחורה שלא זזה" : "הצעות בלי פולואפ");
+    el("step-title").textContent = "איפה שנוזל לכם הכי הרבה: " + (stockBigger ? "סחורה שלא זזה" : "הצעות בלי פולואפ");
     el("step-text").textContent = stockBigger
-      ? "הצעד הראשון: רשימה של 10 המוצרים עם הכי הרבה כסף תקוע, והחלטה על כל אחד השבוע: מבצע, החזרה לספק או חבילה. AI יכול לבנות את הרשימה הזו מקובץ המלאי בכמה דקות, ולהתריע כשמוצר מתחיל להיתקע."
-      : "הצעד הראשון: לעבור על ההצעות מהחודש האחרון ולחזור לכל מי שלא ענה. AI יכול לשלוח תזכורת פולואפ אוטומטית לכל הצעה, ולהגיד לכם אילו לקוחות הכי קרובים לסגירה.";
+      ? "צעד ראשון: תוציאו רשימה של 10 הפריטים עם הכי הרבה כסף תקוע, ותחליטו עליהם השבוע: מבצע, החזרה לספק או מארז מוזל. AI יכול לייצר את הרשימה הזו מקובץ המלאי תוך כמה דקות, ולהתריע מראש כשסחורה מתחילה להיתקע."
+      : "צעד ראשון: תעברו על ההצעות מהחודש האחרון ותחזרו לכל מי שלא ענה. AI יכול לשלוח תזכורת פולואפ אוטומטית לכל הצעה, ולסמן לכם מי הלקוחות שהכי קרובים לסגירה.";
 
-    const msg = `היי נתי, מילאתי את מחשבון דליפות הרווח.
+    const msg = `היי נתי, בדקתי עכשיו במחשבון כמה כסף נוזל אצלי.
 יצא לי ${fmt(monthly)} בחודש (${fmt(monthly * 12)} בשנה).
 סחורה שלא זזה: ${fmt(stockLeak)} | הצעות בלי פולואפ: ${fmt(quoteLeak)}
 אשמח לשמוע מה הדבר הראשון שהיית בודק אצלי.`;
     el("wa").href = "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg);
   }
 
-  fields.forEach(bind);
   calc();
 
   // the drip: money lost since the page opened, at the current monthly rate
@@ -381,7 +402,7 @@
     el("drip").textContent = "₪" + (monthly / (30 * 24 * 3600) * secs).toFixed(2);
   }, 1000);
 
-  // hide the sticky total once the full result is on screen
+  // phone: hide the sticky total once the full result is on screen
   const toggleLive = () => {
     const top = el("result").getBoundingClientRect().top;
     el("live").classList.toggle("hide", top < window.innerHeight * 0.75);
